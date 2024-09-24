@@ -7,6 +7,7 @@ const wss = new WebSocket.Server({ port: 8081 });
 var playerOne, playerTwo, playerThree, computer
 var PlayerOneReady = false;
 var PlayerTwoReady = false;
+var gameInProgress = false;
 
 
 wss.on('connection', (ws) => {
@@ -128,8 +129,10 @@ wss.on('connection', (ws) => {
 
 // Define the /start route
 app.get('/start', (req, res) => {
-    // Check if both players are ready
-    if (PlayerOneReady && PlayerTwoReady) {
+    if (gameInProgress) {
+        res.send('Game is already in progress.');
+    } else if (PlayerOneReady && PlayerTwoReady) {
+        gameInProgress = true;
         // Send a message to both players via WebSocket
         if (playerOne) {
             playerOne.send(JSON.stringify({
@@ -147,6 +150,35 @@ app.get('/start', (req, res) => {
     } else {
         res.send('Players are not ready yet.');
     }
+});
+
+app.get('/restart', (request, response) => {
+     gameInProgress = false;
+     PlayerOneReady = false;
+     PlayerTwoReady = false;
+
+     if (playerOne) {
+        playerOne.send(JSON.stringify({
+            message: "Game has been restarted. Please get ready.",
+            status: "restart"
+        }));
+     }
+
+     if (playerTwo) {
+        playerTwo.send(JSON,stringify({
+            message: "Game has been restarted. Please get ready.",
+            status: "restart"
+        }));
+     }
+
+     if (playerThree) {
+        playerThree.send(JSON.stringify({
+            message: "Game has been restarted",
+            status: "restart"
+        }));
+     }
+
+     res.send('Game has been restarted');
 });
 
 const expressPort = 3000;
